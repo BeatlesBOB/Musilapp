@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useContext } from 'react';
 import { Text, View, StyleSheet, Button } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
+import { SocketContext } from '../context/socket';
 
 export default function QRCodeScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [data, setData] = useState();
+  const {socket} = useContext(SocketContext);
+
   useEffect(() => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
@@ -15,16 +17,8 @@ export default function QRCodeScreen() {
 
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
-    fetch('https://localhost:3000', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body:JSON.parse(data)
-    });
-    setData(JSON.parse(data))
-    //alert(`Bar code with type ${type} and data ${data} has been scanned!`);
+    socket.emit('QRCODE',JSON.parse(data))
+    alert(`${data} has been scanned! & send`);
   };
 
   if (hasPermission === null) {
